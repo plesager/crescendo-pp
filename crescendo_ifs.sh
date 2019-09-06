@@ -86,7 +86,16 @@ cdo -t ecmwf -f nc4 -R expr,"sfsh=Q;" -setreftime,1750-1-1,00:00:00,days -shiftt
 cdo -t ecmwf -f nc4 expr,"ps=exp(LNSP);" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour -sp2gp ${IFStemp}/ICMSH${exp}_${year}${month}_split04.grb  ${IFStemp}/ps_${aerday2d}_${year}${month}.nc    
     #aermon-3d
 cdo -t ecmwf -f nc4 -R expr,"clt=CC;" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour ${IFStemp}/ICMGG${exp}_${year}${month}_split07.grb ${IFStemp}/clt_${aermon3d}_${year}${month}.nc
-cdo -t ecmwf -f nc4 -R expr,"cdnc=var101/var105;" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour ${IFStemp}/ICMGG${exp}_${year}${month}_split07.grb ${IFStemp}/cdnc_${aermon3d}_${year}${month}.nc
+#OBSOLETE cdo -t ecmwf -f nc4 -R expr,"cdnc=var101/var105;" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour ${IFStemp}/ICMGG${exp}_${year}${month}_split07.grb ${IFStemp}/cdnc_${aermon3d}_${year}${month}.nc
+
+    # CDNC and Liquid Cloud Time from EC-Earth grib table (126)
+cdo select,param=20.126 ${IFStemp}/ICMGG${exp}_${year}${month}_split07.grb ${IFStemp}/${exp}_${year}${month}_CDNC.grb
+cdo select,param=22.126 ${IFStemp}/ICMGG${exp}_${year}${month}_split07.grb ${IFStemp}/${exp}_${year}${month}_LQCT.grb
+cdo div ${IFStemp}/${exp}_${year}${month}_CDNC.grb ${IFStemp}/${exp}_${year}${month}_LQCT.grb ${IFStemp}/${exp}_${year}${month}_CdivL.grb
+cdo -f nc4 -R setname,'cdnc' -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour  ${IFStemp}/${exp}_${year}${month}_CdivL.grb ${IFStemp}/cdnc_${aermon3d}_${year}${month}.nc
+
+rm -f ${IFStemp}/${exp}_${year}${month}_CdivL.grb ${IFStemp}/${exp}_${year}${month}_CDNC.grb ${IFStemp}/${exp}_${year}${month}_LQCT.grb 
+
 #SH file
 cdo -t ecmwf -f nc4 expr,"ua=U;" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour -sp2gp ${IFStemp}/ICMSH${exp}_${year}${month}_split03.grb ${IFStemp}/ua_${aermon3d}_${year}${month}.nc
 cdo -t ecmwf -f nc4 expr,"va=V;" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour -sp2gp ${IFStemp}/ICMSH${exp}_${year}${month}_split03.grb ${IFStemp}/va_${aermon3d}_${year}${month}.nc
