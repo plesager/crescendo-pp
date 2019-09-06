@@ -4,21 +4,35 @@
 #PBS -l EC_hyperthreads=2
 #PBS -l EC_memory_per_task=1gb
 #PBS -j oe
-#PBS -m abe
-#PBS -M tommi.bergman@knmi.nl
-#PBS -o pp_idid_ifs.yyyy.out
-#####PBS -o /scratch/ms/nl/nktb/crescendo_test/runtime/classic/pp_out/pp_idid_ifs.out.yyyy
+#PBS -m ae
+#PBS -M sager@knmi.nl
+#PBS -o <TEMP>/log/pp_idid_ifs.yyyy.out
      
 # Load the cray-snplauncher module to add the mpiexec command to $PATH
 module load cray-snplauncher
+
+# load tools
+module load cdo/1.8.2
+
 cd $PBS_O_WORKDIR
+
 # wait for 90 seconds, so the runscript can finnish moving data to output
 sleep 90
+
 # execute
-mpiexec -n 1 /perm/ms/nl/nktb/crescendo/crescendo_ifs.sh idid 1 yyyy : -n 1 /perm/ms/nl/nktb/crescendo/crescendo_ifs.sh idid 2 yyyy : -n 1 /perm/ms/nl/nktb/crescendo/crescendo_ifs.sh idid 3 yyyy : -n 1 /perm/ms/nl/nktb/crescendo/crescendo_ifs.sh idid 4 yyyy : -n 1 /perm/ms/nl/nktb/crescendo/crescendo_ifs.sh idid 5 yyyy : -n 1 /perm/ms/nl/nktb/crescendo/crescendo_ifs.sh idid 6 yyyy : -n 1 /perm/ms/nl/nktb/crescendo/crescendo_ifs.sh idid 7 yyyy : -n 1 /perm/ms/nl/nktb/crescendo/crescendo_ifs.sh idid 8 yyyy : -n 1 /perm/ms/nl/nktb/crescendo/crescendo_ifs.sh idid 9 yyyy : -n 1 /perm/ms/nl/nktb/crescendo/crescendo_ifs.sh idid 10 yyyy : -n 1 /perm/ms/nl/nktb/crescendo/crescendo_ifs.sh idid 11 yyyy : -n 1 /perm/ms/nl/nktb/crescendo/crescendo_ifs.sh idid 12 yyyy
-#submit next phase
-cd $PBS_O_WORKDIR
-qsub pp_ifs+tm5_merge_copy.yyyy.job
+mpiexec -n 1 ./crescendo_ifs.sh idid 1 yyyy : \
+    -n 1 ./crescendo_ifs.sh idid 2 yyyy : \
+    -n 1 ./crescendo_ifs.sh idid 3 yyyy : \
+    -n 1 ./crescendo_ifs.sh idid 4 yyyy : \
+    -n 1 ./crescendo_ifs.sh idid 5 yyyy : \
+    -n 1 ./crescendo_ifs.sh idid 6 yyyy : \
+    -n 1 ./crescendo_ifs.sh idid 7 yyyy : \
+    -n 1 ./crescendo_ifs.sh idid 8 yyyy : \
+    -n 1 ./crescendo_ifs.sh idid 9 yyyy : \
+    -n 1 ./crescendo_ifs.sh idid 10 yyyy : \
+    -n 1 ./crescendo_ifs.sh idid 11 yyyy : \
+    -n 1 ./crescendo_ifs.sh idid 12 yyyy
 
-
+# submit next phase
+qsub <TEMP>/pp_ifs+tm5_merge_copy.idid.yyyy.job
 

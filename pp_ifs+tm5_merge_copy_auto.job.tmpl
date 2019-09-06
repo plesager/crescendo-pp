@@ -1,18 +1,24 @@
-#PBS -N year_idid.yyyy
+#PBS -N ifs-idid-merge.yyyy
 #PBS -q nf
 #PBS -l EC_total_tasks=1
 #PBS -l EC_hyperthreads=2
 #PBS -l EC_memory_per_task=12gb
 #PBS -j oe
-#PBS -m abe
-#PBS -M tommi.bergman@knmi.nl
-#PBS -o pp_idid_mergecopy.yyyy.out     
+#PBS -m ae
+#PBS -M sager@knmi.nl
+#PBS -o <TEMP>/log/ifs-idid-merge.yyyy.out     
+
 # Load the cray-snplauncher module to add the mpiexec command to $PATH
 module load cray-snplauncher
+
+module load cdo/1.8.2
+
+# pwd  #---> $HOME
 cd $PBS_O_WORKDIR
+pwd
 
 # execute
-mpiexec -n 1 /perm/ms/nl/nktb/crescendo/crescendo_ifs_year.sh idid yyyy
+mpiexec -n 1 ./crescendo_ifs_year.sh idid yyyy
 
 
 
