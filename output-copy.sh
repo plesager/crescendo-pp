@@ -1,61 +1,36 @@
 #!/bin/bash
 set -ex
-#run year
+
+usage()
+{
+   echo "Usage:"
+   echo "       ${0##*/} EXP YEAR"
+   echo
+   echo " Process TM5 data (mainly copy) and make tarball of all"
+   echo "  results (IFS + TM5) for year YEAR of experiment EXP."
+}
+
+# Experiment id, model year
+runid=$1
 yyyy=$2
 
-# id needed for reading data ${SCRATCH}/ECEARTH-RUNS/${runid}
-runid=$1
-
-#basepath, tarfile directory
+# final output dir (inc. tarfile)
 basepath=${SCRATCH}/CRESCENDO
 
-# upload directory
+# gather directory
 outdir=${basepath}/amip-${runid}-${yyyy}
 mkdir -p ${outdir}
 
-# calculate the directory name, for CRESCENDO 2000 equals 001
+# directory name fo raw model output
 year0=$(head -5 ${SCRATCH}/ECEARTH-RUNS/${runid}/ece.info |tail -1|cut -b 29-32)
 temp=$((yyyy-year0+1))
 leg=`printf %03d $temp`
-echo $temp $leg
 
-#reading data from here
-datapath=${SCRATCH}/ECEARTH-RUNS/${runid}/output/tm5/${leg}/
+echo "*II* Start TM5 data processing for leg $leg of experiment ${runid}"
 
-#IFS
-#cp ${datapath}/tos* ${outdir}/
-#cp ${datapath}/sic* ${outdir}/
-#cp ${datapath}/rsut* ${outdir}/
-#cp ${datapath}/rsutcs* ${outdir}/
-#cp ${datapath}/rlut* ${outdir}/
-#cp ${datapath}/rlutcs* ${outdir}/
-#cp ${datapath}/rsds* ${outdir}/
-#cp ${datapath}/rsus* ${outdir}/
-#cp ${datapath}/rlds* ${outdir}/
-#cp ${datapath}/rlus* ${outdir}/
-#sfcWind
-#cp ${datapath}/albsrfc* ${outdir}/
-#cp ${datapath}/ps* ${outdir}/
-#cp ${datapath}/tas* ${outdir}/
-#clt
-#ua
-#va
-#wa
-#cp ${datapath}/pr* ${outdir}/
-#daily2d
-#cp ${datapath}/ps* ${outdir}/
-#cp ${datapath}/tas* ${outdir}/
-#tasmin
-#tasmax
-#cp ${datapath}/pr* ${outdir}/
-#mon2d
-#uas
-#vas
-#6hr2d
-#uas
-#vas
-#TM5
-#ls ${datapath}
+datapath=${SCRATCH}/ECEARTH-RUNS/${runid}/output/tm5/${leg}
+
+# --- TM5 ---
 #mon2d
 cp ${datapath}/ptp_AERmon_* ${outdir}/
 cp ${datapath}/tatp_AERmon_* ${outdir}/
@@ -83,24 +58,24 @@ cp ${datapath}/od550aerh2o_AERmon_* ${outdir}/
 #cp ${datapath}/emioa_AERmon_* ${outdir}/
 
 #add emioa and chepsoa into temp file
-cdo merge ${datapath}/emioa_AERmon_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc  ${datapath}/chepsoa_AERmon_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc ${basepath}/${runid}.emioa.temp.aermon.${yyyy}.nc
+cdo merge ${datapath}/emioa_AERmon_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc  ${datapath}/chepsoa_AERmon_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc ${basepath}/${runid}.emioa.temp.aermon.${yyyy}.nc
 # do sum of emioa and chepsoa as per data request
-cdo expr,'emioa=emioa+chepsoa;' ${basepath}/${runid}.emioa.temp.aermon.${yyyy}.nc ${outdir}/emioa_AERmon_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc
+cdo expr,'emioa=emioa+chepsoa;' ${basepath}/${runid}.emioa.temp.aermon.${yyyy}.nc ${outdir}/emioa_AERmon_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc
 # remove temp file
 rm -f ${basepath}/${runid}.emioa.temp.aermon.${yyyy}.nc
 
 #cp ${datapath}/wetoa_AERmon_* ${outdir}/
 
 #add wetoa and chepsoa into temp file
-cdo merge ${datapath}/wetoa_AERmon_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc  ${datapath}/wetsoa_AERmon_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc ${basepath}/${runid}.wetoa.temp.aermon.${yyyy}.nc
+cdo merge ${datapath}/wetoa_AERmon_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc  ${datapath}/wetsoa_AERmon_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc ${basepath}/${runid}.wetoa.temp.aermon.${yyyy}.nc
 # do sum of wetoa and chepsoa as per data request
-cdo expr,'wetoa=wetoa+wetsoa;' ${basepath}/${runid}.wetoa.temp.aermon.${yyyy}.nc ${outdir}/wetoa_AERmon_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc
+cdo expr,'wetoa=wetoa+wetsoa;' ${basepath}/${runid}.wetoa.temp.aermon.${yyyy}.nc ${outdir}/wetoa_AERmon_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc
 # remove temp file
 rm -f ${basepath}/${runid}.wetoa.temp.aermon.${yyyy}.nc
 #add dryoa and chepsoa into temp file
-cdo merge ${datapath}/dryoa_AERmon_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc  ${datapath}/drysoa_AERmon_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc ${basepath}/${runid}.dryoa.temp.aermon.${yyyy}.nc
+cdo merge ${datapath}/dryoa_AERmon_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc  ${datapath}/drysoa_AERmon_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc ${basepath}/${runid}.dryoa.temp.aermon.${yyyy}.nc
 # do sum of dryoa and chepsoa as per data request
-cdo expr,'dryoa=dryoa+drysoa;' ${basepath}/${runid}.dryoa.temp.aermon.${yyyy}.nc ${outdir}/dryoa_AERmon_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc
+cdo expr,'dryoa=dryoa+drysoa;' ${basepath}/${runid}.dryoa.temp.aermon.${yyyy}.nc ${outdir}/dryoa_AERmon_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc
 # remove temp file
 rm -f ${basepath}/${runid}.dryoa.temp.aermon.${yyyy}.nc
 
@@ -140,9 +115,9 @@ cp ${datapath}/ec550aer_AER6hr* ${outdir}/
 
 
 #aer6hr2d
-cdo merge ${datapath}/emioa_crescendo_AER6hr_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01010000-${yyyy}12311800.nc  ${datapath}/chepsoa2d_crescendo_AER6hr_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01010000-${yyyy}12311800.nc ${basepath}/${runid}.emioa.temp.${yyyy}.nc
+cdo merge ${datapath}/emioa_crescendo_AER6hr_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01010000-${yyyy}12311800.nc  ${datapath}/chepsoa2d_crescendo_AER6hr_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01010000-${yyyy}12311800.nc ${basepath}/${runid}.emioa.temp.${yyyy}.nc
 # do sum of emioa and chepsoa as per data request
-cdo expr,'emioa=emioa+chepsoa2d;' ${basepath}/${runid}.emioa.temp.${yyyy}.nc ${outdir}/emioa_AER6hr_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01010000-${yyyy}12311800.nc
+cdo expr,'emioa=emioa+chepsoa2d;' ${basepath}/${runid}.emioa.temp.${yyyy}.nc ${outdir}/emioa_AER6hr_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01010000-${yyyy}12311800.nc
 # remove temp file
 rm -f ${basepath}/${runid}.emioa.temp.${yyyy}.nc
 
@@ -162,7 +137,7 @@ cp ${datapath}/sfo3max_AERday* ${outdir}/
 cp ${datapath}/tas_AERday* ${outdir}/
 #missing ps
 #cp ${datapath}/ps_AERday* ${outdir}/
-cdo daymean  ${datapath}/ps_AERhr_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01010000-${yyyy}12312359.nc  ${outdir}/ps_AERday_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}0101-${yyyy}1231.nc
+cdo daymean  ${datapath}/ps_AERhr_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01010000-${yyyy}12312359.nc  ${outdir}/ps_AERday_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}0101-${yyyy}1231.nc
 cp ${datapath}/tasmin_AERday* ${outdir}/
 cp ${datapath}/tasmax_AERday* ${outdir}/
 cp ${datapath}/pr_AERday* ${outdir}/
@@ -227,7 +202,7 @@ cp  ${datapath}/orog_AERfx_* ${outdir}/
 cp ${datapath}/*_crescendo_* ${outdir}/
 
 #Change the name 
-cdo  expr,'chepsoa=chepsoa3d;' ${datapath}/chepsoa3d_crescendo_AERmon_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc  ${outdir}/chepsoa_crescendo_AERmon_EC-Earth3-AerChem_id00_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc 
+cdo  expr,'chepsoa=chepsoa3d;' ${datapath}/chepsoa3d_crescendo_AERmon_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc  ${outdir}/chepsoa_crescendo_AERmon_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_${yyyy}01-${yyyy}12.nc 
 #cp ${datapath}/chepsoa
 rm  -f ${outdir}/co2mass_cre*
 rm  -f ${outdir}/chepsoa3d_cre*
@@ -235,21 +210,15 @@ rm  -f ${outdir}/chepsoa3d_cre*
 rm  -f ${outdir}/chepsoa2d_cre*
 cd ${basepath}
 
-#update the name to include runid to reduce confusion
-for i in amip-${runid}-${yyyy}/*id00*
-do 
-    echo ${i/id00/${runid}}
-    mv $i ${i/id00/${runid}} 
-    
-done
 
-# remove crescendo add on from output
+# remove 'crescendo' from output file names
 for i in amip-${runid}-${yyyy}/*_crescendo_*
 do
     mv $i ${i/_crescendo_/_}
 done
 
 tar vfcz amip-${runid}-${yyyy}.tar.gz amip-${runid}-${yyyy}
+
 ##
 #if [ ${yyyy} -ge "2000" ] 
 #then

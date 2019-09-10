@@ -1,69 +1,88 @@
 * CRESCENDO output postprocessing
 Author: Tommi Bergman KNMI
 
-This CRESCENDO Postprocessing package is built around three processing
-scripts, and two jobfile templates. Workflow consists in creating jobfiles for
-one year: 
+This CRESCENDO post-processing package is built around three processing
+scripts, and two jobfile templates. Workflow consists in creating job files
+for one year and one experiment id, with some /sed/ magic:
 
-: sed "s/yyyy/${year}/g"  pp_ifs_monthly_auto.job.tmpl        | sed "s/idid/${runid}/g  > pp_ifs_monthly.${runid}.${year}.job 
-: sed "s/yyyy/${year}/g"  pp_ifs+tm5_merge_copy_auto.job.tmpl | sed "s/idid/${runid}/g" > pp_ifs+tm5_merge_copy.${runid}.${year}.job 
+: sed "..."  < pp_ifs_monthly_auto.job.tmpl        > pp_ifs_monthly.${runid}.${year}.job 
+: sed "..."  < pp_ifs+tm5_merge_copy_auto.job.tmpl > pp_ifs+tm5_merge_copy.${runid}.${year}.job 
 
-and then submit the cascading jobs:
+and then submitting the cascading jobs:
 
-: qsub pp_ifs_monthly.job
+: qsub pp_ifs_monthly.RUNID.YEAR.job
 :   |
 :   |- crescendo_ifs.sh RUNID MM YYYY   # for months 1..12 in parallel
 :   |
-:   `- qsub pp_ifs+tm5_merge_copy.job
+:   `- qsub pp_ifs+tm5_merge_copy.RUNID.YEAR.job
 :              |
-:              `- crescendo_ifs.sh RUNID YYYY
+:              `- crescendo_ifs_year.sh RUNID YYYY
 :                   |
 :                   `- output-copy.sh RUNID YYYY
 
-The /submit-cresc-pp.sh/ script creates the job files and submit the first
-one. That script and the templates are specifics to PBS/ecmwf-cca platform.
+The /submit-cresc-pp.sh/ script does the magic and creates the job files, then
+submits the first job. That script and the templates are specifics to the
+PBS/ecmwf-cca platform. Just call:
+
+: ./submit-cresc-pp.sh -h
+
+for details on how to start a job chain. 
+
+** Requirements
+   - EC-Earth runs are expected in /${SCRATCH}/ECEARTH-RUNS/${runid}/
+   - Crescendo output requested from TM5
+   - IFS extra output: CDNC and Liquid CLoud Time, i.e. Aerosol CLoud
+     Interaction diagnostic has to be switched on.
 
 ** Job templates
 *** pp_ifs_monthly_auto.job.tmpl
 
-Template for automatic job file creation at the end of one leg. At the end of
-leg the run-file of EC-Earth will replace /yyyy/ with the current run year and
-/idid/ with current /runid/.  This job script will run /crescendo_ifs.sh/ for months
-1-12 and at the end will submit /pp_ifs+tm5_merge_copy.job/
+Job template to run /crescendo_ifs.sh/ for months 1-12 and, when done, submit
+/pp_ifs+tm5_merge_copy.RUNID.YEAR.job/ (created from the next
+template). Replace or remove the /idid/, /yyyy/, /<TEMP>/, /<ACCOUNT>/, and
+/<DEPENDENCY>/ placeholders before submitting the script. This is all done by
+the /submit-cresc-pp.sh/ script.
 
-Usage (from runfile):
-: qsub pp_ifs_monthly.job
+Usage:
+: qsub pp_ifs_monthly.RUNID.YEAR.job
 
 *** pp_ifs+tm5_merge_copy_auto.job.tmpl 
 
-Template for automatic job file creation at the end of one leg. /yyyy/ replaced
-with the current run year and /idid/ will be replaced with current /runid/ to
-create a jobfile /pp_ifs+tm5_merge_copy.job/. This will execute
-/crescendo_ifs_year.sh/, which subsequently executes /output-copy.sh/
+Job template to run /crescendo_ifs_year.sh/, which subsequently executes
+/output-copy.sh/. The /submit-cresc-pp.sh/ script parses the template to
+create the /pp_ifs+tm5_merge_copy.RUNID.YEAR.job/.
 
-Usage (from runfile):
-: qsub pp_ifs+tm5_merge_copy.job
+Usage (call from /pp_ifs_monthly.RUNID.YEAR.job/):
+: qsub pp_ifs+tm5_merge_copy.RUNID.YEAR.job
+
+*** mm2yyyy_leg.sh.tmpl
+
+Template to recast output from a monthly legged run into the structure of a
+yearly run. This utility is *experimental*, since it only works with two-year
+runs only, and can be applied *only once* for a given experiment! The template
+is parsed by the /submit-cresc-pp.sh/ script, when called with the /-m/
+option.
 
 ** Processing scripts
 *** crescendo_ifs.sh 
 
-The script will process monthly IFS data for CRESCENDO to produce daily and
-monthly means for requested variables.  Script will takes as an argument
-/runid/, /year/ and /month/. Usage:
+The script will process monthly IFS data to produce daily and monthly means
+for requested variables.  Script will takes as an argument /runid/, /year/ and
+/month/. Usage:
 : crescendo_ifs.sh RUNID MM YYYY
 
 *** crescendo_ifs_year.sh 
 
-The script will process the averaged IFS data for CRESCENDO to produce yearly
+The script will merge the IFS data averaged in /crescendo_ifs.sh/ to produce yearly
 files for requested variables.  Script takes as an argument /runid/ and /year/,
 and in the end runs /output-copy-transfer.sh/. Usage:
 : crescendo_ifs.sh RUNID YYYY
 
 *** output-copy.sh 
 
-This script will copy the data from IFS and TM5 into
-${SCRATCH}/CRESCENDO/amip-pd-${yyyy}. A tarball (amip-pd-${yyyy}.tar.gz)
-including this folder will be created in ${SCRATCH}/CRESCENDO/. Usage:
+This script copies data from IFS and TM5 into
+${SCRATCH}/CRESCENDO/amip-${runid}-${yyyy}. A tarball (amip-${runid}-${yyyy}.tar.gz)
+of this folder is created in ${SCRATCH}/CRESCENDO/. Usage:
 : output-copy.sh RUNID YYYY
 
 ** Issues

@@ -1,28 +1,39 @@
 #!/bin/bash
+
 set -ex
-# figure out how to retrieve start year from ece.info
+
+usage()
+{
+   echo "Usage:"
+   echo "       ${0##*/} EXP MM YYYY"
+   echo
+   echo " process IFS data for month MM, year YYY and experiment EXP"
+}
+
+
+# -- Params
 runid=$1
-
 month=$(printf %02d $2)
-echo 'processing month ' $month
-
 year=$3
-name="CRESCENDO"
 
+# rundir
 cd ${SCRATCH}/ECEARTH-RUNS/${runid}/
 
 year0=$(head -5 ${SCRATCH}/ECEARTH-RUNS/${runid}/ece.info |tail -1|cut -b 29-32)
 temp=$((year-year0+1))
 leg=`printf %03d $temp`
-echo "running leg ${temp} ${leg}"
 
-#runid="crsp"
+echo "*II* Start processing IFS data for month=$month from leg=$leg (i.e. year=$year) of experiment ${runid}"
 
+# output dir
 basepath=${SCRATCH}/CRESCENDO
-#outdir=${basepath}/amip-pd-${yyyy}
-datapath=${SCRATCH}/ECEARTH-RUNS/${runid}/output/ifs/${leg}
-
 IFStemp=${basepath}/ifstemp/${runid}/
+
+mkdir -p ${IFStemp}
+rm -f ${IFStemp}/*_${year}${month}.nc
+
+# input dir
+datapath=${SCRATCH}/ECEARTH-RUNS/${runid}/output/ifs/${leg}
 
 aermon3d='AERmon'
 aerday2d='AERday'
@@ -30,16 +41,8 @@ aermon2d='AERmon'
 aer6hr='AER6hr'
 
 exp=$runid
-#'crsp'
 
-
-
-#outdir=${IFStemp}${year}
-mkdir -p ${IFStemp}
-#clear data for currently processed month 
-rm -f ${IFStemp}/*_${year}${month}.nc
-rm -f ${MONTHFStemp}/*_${year}${month}.mm.nc
-
+# -- Process
 #cdo -t ecmwf -R splitzaxis -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour ${datapath}/ICMGG${exp}+${year}${month} ${IFStemp}/ICMGG${exp}_${year}${month}_split
 #cdo -t ecmwf -R splitzaxis  -setreftime,1750-1-1,00:00:00,days  -shifttime,-6hour  ${datapath}/ICMSH${exp}+${year}${month} ${IFStemp}/ICMSH${exp}_${year}${month}_split
 cdo -t ecmwf -R splitzaxis ${datapath}/ICMGG${exp}+${year}${month} ${IFStemp}/ICMGG${exp}_${year}${month}_split
@@ -86,7 +89,6 @@ cdo -t ecmwf -f nc4 -R expr,"sfsh=Q;" -setreftime,1750-1-1,00:00:00,days -shiftt
 cdo -t ecmwf -f nc4 expr,"ps=exp(LNSP);" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour -sp2gp ${IFStemp}/ICMSH${exp}_${year}${month}_split04.grb  ${IFStemp}/ps_${aerday2d}_${year}${month}.nc    
     #aermon-3d
 cdo -t ecmwf -f nc4 -R expr,"clt=CC;" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour ${IFStemp}/ICMGG${exp}_${year}${month}_split07.grb ${IFStemp}/clt_${aermon3d}_${year}${month}.nc
-#OBSOLETE cdo -t ecmwf -f nc4 -R expr,"cdnc=var101/var105;" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour ${IFStemp}/ICMGG${exp}_${year}${month}_split07.grb ${IFStemp}/cdnc_${aermon3d}_${year}${month}.nc
 
     # CDNC and Liquid Cloud Time from EC-Earth grib table (126)
 cdo select,param=20.126 ${IFStemp}/ICMGG${exp}_${year}${month}_split07.grb ${IFStemp}/${exp}_${year}${month}_CDNC.grb

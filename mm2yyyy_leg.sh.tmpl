@@ -1,0 +1,114 @@
+#! /usr/bin/env bash
+
+#PBS -N mm2yyyy.<RUNID>
+#PBS -q ns
+#PBS -l EC_billing_account=<ACCOUNT>
+#PBS -j oe
+#PBS -l walltime=06:00:00
+#PBS -o <TEMP>/log/mm2yyyy.<RUNID>.out
+
+set -e
+module load cdo/1.8.2
+
+
+ ########################################################
+ # Convert monthly legged run into a yearly legged run. #
+ # Hardcoded for a two-year run.                        #
+ #                                                      #
+ # Argument hardcoded for submission.                   #
+ ########################################################
+
+# --- Argument
+runid=<RUNID>
+
+# raw output
+outdir=${SCRATCH}/ECEARTH-RUNS/${runid}/output/
+
+
+# -- Move IFS and TM5 monthly legs.  Order of the command is IMPORTANT
+
+for model in ifs tm5
+do
+    echo "*II* move into one outdir: ${model}"
+ 
+    cd ${outdir}/${model}
+ 
+    # first year
+    for l in {2..12}
+    do 
+        legnb=$(printf "%03d" $l)
+        find ${legnb} -type f -exec mv {} '001/' \; 
+    done
+ 
+    # second year
+    for l in {13..24}
+    do
+        legnb=$(printf "%03d" $l)
+        find ${legnb} -type f -exec mv {} '002/' \;    
+    done
+done
+
+# -- Merge TM5 monthly files into yearly file
+
+for nb in {1..2}
+do 
+    cd ${outdir}/tm5
+
+    leg=$(printf "%03d" $nb)
+
+    # backup 
+    mv ${leg} ${leg}_orig
+    mkdir ${leg}
+    cd ${leg}_orig
+
+    # --- Crescendo monthly output
+    vars=$(ls -1 | sed -nr "s/(.+)_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_....01-....12.nc/\1/g"p)
+    
+    for v in $vars
+    do
+        echo "*II* timemerging MONTHLY TM5 leg/variable ${leg}/${v}"
+
+        files=$(ls -1 ${v}_EC-Earth3* )
+        ofile=../${leg}/$(ls -1 ${files} | head -1)
+
+        cdo -s -f nc4c -z zip mergetime $files $ofile
+    done
+
+    # --- Crescendo daily output
+    vars=$(ls -1 | sed -nr "s/(.+)_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_....0101-....1231.nc/\1/g"p)
+    
+    for v in $vars
+    do
+        echo "*II* timemerging DAILY TM5 leg/variable ${leg}/${v}"
+
+        files=$(ls -1 ${v}_EC-Earth3* )
+        ofile=../${leg}/$(ls -1 ${files} | head -1)
+
+        cdo -s -f nc4c -z zip mergetime $files $ofile
+    done
+
+    # --- Crescendo hourly and 6hr output
+    vars=$(ls -1 | sed -nr "s/(.+)_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn_....01010000-....1231....\.nc/\1/g"p)
+    
+    for v in $vars
+    do
+        echo "*II* timemerging (6-)HOURLY TM5 leg/variable ${leg}/${v}"
+
+        files=$(ls -1 ${v}_EC-Earth3* )
+        ofile=../${leg}/$(ls -1 ${files} | head -1)
+
+        cdo -s -f nc4c -z zip mergetime $files $ofile
+    done
+
+    # constant fields
+    cp areacella_AERfx_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn.nc ../${leg}/
+    cp orog_AERfx_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn.nc      ../${leg}/
+    cp sftlf_AERfx_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn.nc     ../${leg}/
+
+    #NOT NEEDED # Aercom/general output
+    #NOT NEEDED aerocom3_TM5_${runid}_global_??????_monthly.nc
+    #NOT NEEDED general_TM5_${runid}_??????_monthly.nc
+
+done
+
+echo "*II* SUCCESS"

@@ -1,54 +1,64 @@
 #!/bin/bash
-set -e
+
+set -ex
+
+usage()
+{
+   echo "Usage:"
+   echo "       ${0##*/} EXP YEAR"
+   echo
+   echo " Merge monthly/daily files of year YEAR of experiment EXP"
+}
+
 runid=$1
 yyyy=$2
-name="CRESCENDO"
 
-aermon3dout='AERmon_EC-Earth3-AerChem_id00_r1i1p1f1_gn-IFS_'${yyyy}'01-'${yyyy}'12'
-aerday2dout='AERday_EC-Earth3-AerChem_id00_r1i1p1f1_gn-IFS_'${yyyy}'0101-'${yyyy}'1231'
-aermon2dout='AERmon_EC-Earth3-AerChem_id00_r1i1p1f1_gn-IFS_'${yyyy}'01-'${yyyy}'12'
-aer6hrout='AER6hr_EC-Earth3-AerChem_id00_r1i1p1f1_gn-IFS_'${yyyy}'01010000-'${yyyy}'12311800'
-aerfxout='AERfx_EC-Earth3-AerChem_id00_r1i1p1f1_gn-IFS_'${yyyy}
+# outfile name stems
+aermon3dout=AERmon_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn-IFS_${yyyy}01-${yyyy}12
+aerday2dout=AERday_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn-IFS_${yyyy}0101-${yyyy}1231
+aermon2dout=AERmon_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn-IFS_${yyyy}01-${yyyy}12
+aer6hrout=AER6hr_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn-IFS_${yyyy}01010000-${yyyy}12311800
+aerfxout=AERfx_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn-IFS_${yyyy}
 
+# infile name stems
 aermon3d='AERmon'
 aerday2d='AERday'
 aermon2d='AERmon'
 aer6hr='AER6hr'
 
-#PATHs
-#basepath for CRESCENOD processed output
+# -- PATHs
+# processed output
 basepath=${SCRATCH}/CRESCENDO
-#output direcotry
+
+# output directory
 outdir=${basepath}/amip-${runid}-${yyyy}
 
-#temp for ifs files
+# temp for ifs files
 IFStemp=${basepath}/ifstemp/${runid}/
 
-#make sure ifs temp does not have yearly files
+# make sure ifs temp does not have yearly files
 rm -f ${IFStemp}/*_${yyyy}.nc
 
-#make sure we have an output directory
+# make sure we have an output directory, and it is empty
 mkdir -p ${outdir}
-
-#make sure output directory is empty
 rm -f ${outdir}/*
 
-#join monthly files to onefile
+# -- join monthly files to onefile
 for i in ${IFStemp}/*_AERmon_${yyyy}01.nc
 do
     #for k in 01 02 03 04 05 06 07 08 09 10 11 12
     #do 
-	#cdo monmean ${IFStemp}/$(basename $i 01.nc)${k}.nc  ${IFStemp}/$(basename $i 01.nc)${k}.mm.nc
+        #cdo monmean ${IFStemp}/$(basename $i 01.nc)${k}.nc  ${IFStemp}/$(basename $i 01.nc)${k}.mm.nc
     #done
     cdo mergetime ${IFStemp}/$(basename $i 01.nc)??.mm.nc  ${IFStemp}/$(basename $i 01.nc).nc
 done 
 
-#join daily files to onefile
+# -- join daily files to onefile
 for i in ${IFStemp}/*_AERday_${yyyy}01.nc
 do
     #for k in 01 02 03 04 05 06 07 08 09 10 11 12
     #do 
-	#cdo daymean ${IFStemp}/$(basename $i 01.nc)${k}.nc  ${IFStemp}/$(basename $i 01.nc)${k}.mm.nc
+        #cdo daymean ${IFStemp}/$(basename $i 01.nc)${k}.nc  ${IFStemp}/$(basename $i 01.nc)${k}.mm.nc
     #done
     cdo mergetime ${IFStemp}/$(basename $i 01.nc)??.mm.nc  ${IFStemp}/$(basename $i 01.nc).nc
 done 
@@ -62,7 +72,7 @@ rm -f ${IFStemp}/*_AER???_${yyyy}??.mm.nc
 rm -f ${IFStemp}/*_AER???_${yyyy}??.nc
 
 
-echo "copying ifs files to final output dir: ${outdir}"
+echo "*II* copy IFS files to final output dir: ${outdir}"
 #aermon-2d${aer
 cp ${IFStemp}/tos_${aermon2d}_${yyyy}.nc ${outdir}/tos_crescendo_${aermon2dout}_${yyyy}.nc
 cp ${IFStemp}/sic_${aermon2d}_${yyyy}.nc ${outdir}/sic_crescendo_${aermon2dout}_${yyyy}.nc
@@ -117,9 +127,10 @@ cp ${IFStemp}/va_${aermon3d}_${yyyy}.nc ${outdir}/va_crescendo_${aermon3dout}_${
 cp ${IFStemp}/wa_${aermon3d}_${yyyy}.nc ${outdir}/wa_crescendo_${aermon3dout}_${yyyy}.nc
 cp ${IFStemp}/areacella_AERfx_${yyyy}.temp.nc ${outdir}/areacella_crescendo_${aerfxout}_${yyyy}.nc
 
-echo "removing intermediate files from ifstemp: ${IFStemp} for year ${yyyy}"
+echo "*II* remove intermediate files from ifstemp: ${IFStemp} for year ${yyyy}"
 rm -f ${IFStemp}/*${yyyy}*
-#copy remaining TM5 data to outputdir + make tarball
-/perm/ms/nl/nktb/crescendo/output-copy.sh ${runid} ${yyyy}
+
+# copy remaining TM5 data to outputdir + make tarball
+./output-copy.sh ${runid} ${yyyy}
 
 

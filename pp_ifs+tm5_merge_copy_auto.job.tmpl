@@ -6,6 +6,7 @@
 #PBS -j oe
 #PBS -m ae
 #PBS -M sager@knmi.nl
+#PBS -l EC_billing_account=<ACCOUNT>
 #PBS -o <TEMP>/log/ifs-idid-merge.yyyy.out     
 
 # Load the cray-snplauncher module to add the mpiexec command to $PATH
