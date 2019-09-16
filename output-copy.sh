@@ -217,18 +217,13 @@ do
     mv $i ${i/_crescendo_/_}
 done
 
-tar vfcz amip-${runid}-${yyyy}.tar.gz amip-${runid}-${yyyy}
-
-##
-#if [ ${yyyy} -ge "2000" ] 
-#then
-#JASMINPATH
-JASMIN=bergmant@jasmin-xfer1.ceda.ac.uk
-JASMINPATH=/group_workspaces/jasmin2/crescendo/bergmant/
-#scp amip-${runid}-${yyyy}.tar.gz ${JASMIN}:${JASMINPATH}
-#fi
-#rm -f amip-${runid}-${yyyy}.tar.gz
+## Commented: need to rename experiment, or/and backup on ECFS - all this done somehwere else 
+# # -- Pack results and transfer to JASMIN
+#  
+# #tar vfcz amip-${runid}-${yyyy}.tar.gz amip-${runid}-${yyyy}
+#  
+# JASMIN=bergmant@jasmin-xfer1.ceda.ac.uk
+# JASMINPATH=/group_workspaces/jasmin2/crescendo/bergmant/
+# #scp amip-${runid}-${yyyy}.tar.gz ${JASMIN}:${JASMINPATH}
+# #rm -f amip-${runid}-${yyyy}.tar.gz
 cd -
-#set +x
-#/perm/ms/nl/nktb/ece3-raw-backup/sub_ece3_bckp.sh ${runid} ${leg}
-#set -x

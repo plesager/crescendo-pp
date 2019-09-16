@@ -3,7 +3,7 @@
 usage()
 {
    echo "Usage:"
-   echo "       ${0##*/} [-a] [-m] EXP YEAR"
+   echo "       ${0##*/} [-a ACCOUNT] [-m] EXP YEAR"
    echo
    echo " Submit chain of CRESCENDO post-processing jobs,"
    echo "  for one YEAR of data for experiment EXP"
