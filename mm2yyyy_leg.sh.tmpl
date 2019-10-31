@@ -50,7 +50,10 @@ done
 
 # -- Merge TM5 monthly files into yearly file
 
-for nb in {1..2}
+\rm -rf ${outdir}/tm5/001
+
+#for nb in {1..2}
+for nb in 2
 do 
     cd ${outdir}/tm5
 
@@ -72,6 +75,7 @@ do
         ofile=../${leg}/$(ls -1 ${files} | head -1)
 
         cdo -s -f nc4c -z zip mergetime $files $ofile
+        \rm -f $files
     done
 
     # --- Crescendo daily output
@@ -85,6 +89,7 @@ do
         ofile=../${leg}/$(ls -1 ${files} | head -1)
 
         cdo -s -f nc4c -z zip mergetime $files $ofile
+        \rm -f $files
     done
 
     # --- Crescendo hourly and 6hr output
@@ -98,12 +103,13 @@ do
         ofile=../${leg}/$(ls -1 ${files} | head -1)
 
         cdo -s -f nc4c -z zip mergetime $files $ofile
+        \rm -f $files
     done
 
     # constant fields
-    cp areacella_AERfx_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn.nc ../${leg}/
-    cp orog_AERfx_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn.nc      ../${leg}/
-    cp sftlf_AERfx_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn.nc     ../${leg}/
+    mv areacella_AERfx_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn.nc ../${leg}/
+    mv orog_AERfx_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn.nc      ../${leg}/
+    mv sftlf_AERfx_EC-Earth3-AerChem_${runid}_r1i1p1f1_gn.nc     ../${leg}/
 
     #NOT NEEDED # Aercom/general output
     #NOT NEEDED aerocom3_TM5_${runid}_global_??????_monthly.nc
