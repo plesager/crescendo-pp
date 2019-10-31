@@ -3,13 +3,14 @@
 usage()
 {
    echo "Usage:"
-   echo "       ${0##*/} [-a ACCOUNT] [-m] EXP YEAR"
+   echo "       ${0##*/} [-a ACCOUNT] [-m] [-p] EXP YEAR"
    echo
    echo " Submit chain of CRESCENDO post-processing jobs,"
    echo "  for one YEAR of data for experiment EXP"
    echo
    echo "Options are:"
    echo "   -a ACCOUNT  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT:-unknown})"
+   echo "   -p          : do the post-processing. Default: do nothing."
    echo "   -m          : use if EC-Earth is run in monthly chunks, and"
    echo "                  needs to be converted to a yearly run first."
    echo
@@ -20,10 +21,11 @@ usage()
 set -eu
 
 convert=0
+pproc=0
 account="${ECE3_POSTPROC_ACCOUNT-}"
 
 # -- options
-while getopts "hma:" opt; do
+while getopts "hmpa:" opt; do
     case "$opt" in
         h)
             usage
@@ -32,6 +34,8 @@ while getopts "hma:" opt; do
         a)  account=$OPTARG
             ;;
         m)  convert=1
+            ;;
+        p)  pproc=1
             ;;
         *)  usage
             exit 1
@@ -87,33 +91,36 @@ then
 fi
 
 #- IFS post-processing
-first_script=$OUT/pp_ifs_monthly.${runid}.${year}.job
+if (( pproc ))
+then
+    first_script=$OUT/pp_ifs_monthly.${runid}.${year}.job
 
-sed -e "s|yyyy|${year}|g" \
-    -e "s|idid|${runid}|g" \
-    -e "s|<TEMP>|$OUT|g" \
-    <pp_ifs_monthly_auto.job.tmpl >$first_script
+    sed -e "s|yyyy|${year}|g" \
+        -e "s|idid|${runid}|g" \
+        -e "s|<TEMP>|$OUT|g" \
+        <pp_ifs_monthly_auto.job.tmpl >$first_script
 
-[[ -n $dependency ]] && \
-    sed -i "s/<DEPENDENCY>/$dependency/" $first_script || \
-    sed -i "/<DEPENDENCY>/ d" $first_script
+    [[ -n $dependency ]] && \
+        sed -i "s/<DEPENDENCY>/$dependency/" $first_script || \
+        sed -i "/<DEPENDENCY>/ d" $first_script
 
-[[ -n $account ]] && \
-    sed -i "s/<ACCOUNT>/$account/" $first_script || \
-    sed -i "/<ACCOUNT>/ d" $first_script
-
-
-#- second job triggered by first one
-snd_script=$OUT/pp_ifs+tm5_merge_copy.${runid}.${year}.job
-
-sed -e "s|yyyy|${year}|g" \
-    -e "s|idid|${runid}|g" \
-    -e "s|<TEMP>|$OUT|g" \
-    <pp_ifs+tm5_merge_copy_auto.job.tmpl >${snd_script}
-
-[[ -n $account ]] && \
-    sed -i "s/<ACCOUNT>/$account/" $snd_script || \
-    sed -i "/<ACCOUNT>/ d" $snd_script
+    [[ -n $account ]] && \
+        sed -i "s/<ACCOUNT>/$account/" $first_script || \
+        sed -i "/<ACCOUNT>/ d" $first_script
 
 
-qsub $first_script
+    #- second job triggered by first one
+    snd_script=$OUT/pp_ifs+tm5_merge_copy.${runid}.${year}.job
+
+    sed -e "s|yyyy|${year}|g" \
+        -e "s|idid|${runid}|g" \
+        -e "s|<TEMP>|$OUT|g" \
+        <pp_ifs+tm5_merge_copy_auto.job.tmpl >${snd_script}
+
+    [[ -n $account ]] && \
+        sed -i "s/<ACCOUNT>/$account/" $snd_script || \
+        sed -i "/<ACCOUNT>/ d" $snd_script
+
+
+    qsub $first_script
+fi
