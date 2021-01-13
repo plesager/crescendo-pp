@@ -85,6 +85,7 @@ cp ${IFStemp}/rsus_${aermon2d}_${yyyy}.nc  ${outdir}/rsus_crescendo_${aermon2dou
 
 cp ${IFStemp}/rsds_${aermon2d}_${yyyy}.nc ${outdir}/rsds_crescendo_${aermon2dout}_${yyyy}.nc
 cp ${IFStemp}/rlds_${aermon2d}_${yyyy}.nc ${outdir}/rlds_crescendo_${aermon2dout}_${yyyy}.nc
+cp ${IFStemp}/rsdt_${aermon2d}_${yyyy}.nc ${outdir}/rsdt_crescendo_${aermon2dout}_${yyyy}.nc
 # SI-TSR(C)  
 cp ${IFStemp}/rsutcs_${aermon2d}_${yyyy}.nc  ${outdir}/rsutcs_crescendo_${aermon2dout}_${yyyy}.nc
 cp ${IFStemp}/rsut_${aermon2d}_${yyyy}.nc  ${outdir}/rsut_crescendo_${aermon2dout}_${yyyy}.nc

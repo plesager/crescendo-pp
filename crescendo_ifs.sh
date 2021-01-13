@@ -60,6 +60,7 @@ cdo -t ecmwf -f nc4 -R expr,"rsus=-(SSR-SSRD)/(6.0*3600.0);" -setreftime,1750-1-
 
 cdo -t ecmwf -f nc4 -R expr,"rsds=SSRD/(6.0*3600.0);" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour ${IFStemp}/ICMGG${exp}_${year}${month}_split01.grb ${IFStemp}/rsds_${aermon2d}_${year}${month}.nc
 cdo  -t ecmwf -f nc4 -R expr,"rlds=STRD/(6.0*3600.0);" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour ${IFStemp}/ICMGG${exp}_${year}${month}_split01.grb ${IFStemp}/rlds_${aermon2d}_${year}${month}.nc
+cdo  -t ecmwf -f nc4 -R expr,"rsdt=SI/(6.0*3600.0);" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour ${IFStemp}/ICMGG${exp}_${year}${month}_split01.grb ${IFStemp}/rsdt_${aermon2d}_${year}${month}.nc
 # SI-TSR(C)  
 cdo  -t ecmwf -f nc4 -R expr,"rsutcs=(SI-TSRC)/(6.0*3600.0);" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour ${IFStemp}/ICMGG${exp}_${year}${month}_split01.grb ${IFStemp}/rsutcs_${aermon2d}_${year}${month}.nc
 cdo  -t ecmwf -f nc4 -R expr,"rsut=(SI-TSR)/(6.0*3600.0);" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour ${IFStemp}/ICMGG${exp}_${year}${month}_split01.grb ${IFStemp}/rsut_${aermon2d}_${year}${month}.nc
