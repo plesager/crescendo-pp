@@ -50,7 +50,7 @@ do
     #do 
         #cdo monmean ${IFStemp}/$(basename $i 01.nc)${k}.nc  ${IFStemp}/$(basename $i 01.nc)${k}.mm.nc
     #done
-    cdo mergetime ${IFStemp}/$(basename $i 01.nc)??.mm.nc  ${IFStemp}/$(basename $i 01.nc).nc
+    cdo -f nc4 -z zip mergetime ${IFStemp}/$(basename $i 01.nc)??.mm.nc  ${IFStemp}/$(basename $i 01.nc).nc
 done 
 
 # -- join daily files to onefile
@@ -60,11 +60,11 @@ do
     #do 
         #cdo daymean ${IFStemp}/$(basename $i 01.nc)${k}.nc  ${IFStemp}/$(basename $i 01.nc)${k}.mm.nc
     #done
-    cdo mergetime ${IFStemp}/$(basename $i 01.nc)??.mm.nc  ${IFStemp}/$(basename $i 01.nc).nc
+    cdo -f nc4 -z zip mergetime ${IFStemp}/$(basename $i 01.nc)??.mm.nc  ${IFStemp}/$(basename $i 01.nc).nc
 done 
 for i in ${IFStemp}/*_AER6hr_${yyyy}01.nc
 do
-    cdo mergetime ${IFStemp}/$(basename $i 01.nc)??.nc  ${IFStemp}/$(basename $i 01.nc).nc
+    cdo -f nc4 -z zip mergetime ${IFStemp}/$(basename $i 01.nc)??.nc  ${IFStemp}/$(basename $i 01.nc).nc
 done 
 
 # remove monthly tempfiles
