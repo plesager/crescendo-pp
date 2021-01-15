@@ -1,6 +1,7 @@
 * CRESCENDO output postprocessing
-Author: Tommi Bergman KNMI
+  Author: original by Tommi Bergman KNMI, revamped by Philippe Le Sager
 
+** Overview
 This CRESCENDO post-processing package is built around three processing
 scripts, and two jobfile templates. Workflow consists in creating job files
 for one year and one experiment id, with some /sed/ magic:
@@ -29,10 +30,11 @@ PBS/ecmwf-cca platform. Just call:
 for details on how to start a job chain. 
 
 ** Requirements
-   - EC-Earth runs are expected in /${SCRATCH}/ECEARTH-RUNS/${runid}/
+   - An EC-Earth rundir in /${SCRATCH}/ECEARTH-RUNS/${runid}/, where raw
+     output (with usual tree subdirs) and ece.info are expected
    - Crescendo output requested from TM5
    - IFS extra output: CDNC and Liquid CLoud Time, i.e. Aerosol CLoud
-     Interaction diagnostic has to be switched on.
+     Interaction diagnostic has to be switched on. (PEXTRA)
 
 ** Job templates
 *** pp_ifs_monthly_auto.job.tmpl
@@ -81,8 +83,10 @@ and in the end runs /output-copy-transfer.sh/. Usage:
 *** output-copy.sh 
 
 This script copies data from IFS and TM5 into
-${SCRATCH}/CRESCENDO/amip-${runid}-${yyyy}. A tarball (amip-${runid}-${yyyy}.tar.gz)
-of this folder is created in ${SCRATCH}/CRESCENDO/. Usage:
+${SCRATCH}/CRESCENDO/amip-${runid}-${yyyy}.  (A tarball
+(amip-${runid}-${yyyy}.tar.gz) of this folder used to be created in
+${SCRATCH}/CRESCENDO/, but this has been commented and it is done in the
+project management level). Usage:
 : output-copy.sh RUNID YYYY
 
 ** Issues
