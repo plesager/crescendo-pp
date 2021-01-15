@@ -91,13 +91,6 @@ cdo -t ecmwf -f nc4 expr,"ps=exp(LNSP);" -setreftime,1750-1-1,00:00:00,days -shi
     #aermon-3d
 cdo -t ecmwf -f nc4 -R expr,"clt=CC;" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour ${IFStemp}/ICMGG${exp}_${year}${month}_split07.grb ${IFStemp}/clt_${aermon3d}_${year}${month}.nc
 
-    # CDNC and Liquid Cloud Time from EC-Earth grib table (126)
-cdo select,param=20.126 ${IFStemp}/ICMGG${exp}_${year}${month}_split07.grb ${IFStemp}/${exp}_${year}${month}_CDNC.grb
-cdo select,param=22.126 ${IFStemp}/ICMGG${exp}_${year}${month}_split07.grb ${IFStemp}/${exp}_${year}${month}_LQCT.grb
-cdo div ${IFStemp}/${exp}_${year}${month}_CDNC.grb ${IFStemp}/${exp}_${year}${month}_LQCT.grb ${IFStemp}/${exp}_${year}${month}_CdivL.grb
-cdo -f nc4 -R setname,'cdnc' -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour  ${IFStemp}/${exp}_${year}${month}_CdivL.grb ${IFStemp}/cdnc_${aermon3d}_${year}${month}.nc
-
-rm -f ${IFStemp}/${exp}_${year}${month}_CdivL.grb ${IFStemp}/${exp}_${year}${month}_CDNC.grb ${IFStemp}/${exp}_${year}${month}_LQCT.grb 
 
 #SH file
 cdo -t ecmwf -f nc4 expr,"ua=U;" -setreftime,1750-1-1,00:00:00,days -shifttime,-6hour -sp2gp ${IFStemp}/ICMSH${exp}_${year}${month}_split03.grb ${IFStemp}/ua_${aermon3d}_${year}${month}.nc
@@ -120,3 +113,16 @@ do
 
 done 
 
+    # CDNC and Liquid Cloud Time from EC-Earth grib table (126) - Apply expression on monthly averaged values, which can be done only after time shifting.
+cdo expr,"cdnc=(var22 > 1e-6)?1e+6*var20/var22:0;" -monmean -shifttime,-6hour -selcode,20,22 ${IFStemp}/ICMGG${exp}_${year}${month}_split07.grb ${IFStemp}/${exp}_${year}${month}_CDNC.grb
+cdo -f nc4 -R setname,'cdnc' -setreftime,1750-1-1,00:00:00,days ${IFStemp}/${exp}_${year}${month}_CDNC.grb ${IFStemp}/cdnc_${aermon3d}_${year}${month}.mm.nc
+
+ncatted -h -O -a standard_name,cdnc,o,c,"number_concentration_of_cloud_liquid_water_particles_in_air" \
+    -a long_name,cdnc,o,c,"Cloud Liquid Droplet Number Concentration" \
+    -a comment,cdnc,o,c,"Cloud Droplet Number Concentration in liquid water clouds." \
+    -a units,cdnc,o,c,"m-3" \
+    -a code,cdnc,d,, -a table,cdnc,d,, ${IFStemp}/cdnc_${aermon3d}_${year}${month}.mm.nc
+
+touch ${IFStemp}/cdnc_${aermon3d}_${year}${month}.nc # Needed by crescendo_ifs_year.sh
+
+rm -f  ${IFStemp}/${exp}_${year}${month}_CDNC.grb
